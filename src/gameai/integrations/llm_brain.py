@@ -71,10 +71,33 @@ class LlmBrain:
 
     @staticmethod
     def _parse(raw: str) -> dict:
-        """把 LLM 文本解析成 {"line": ..., "intent": {...}}；解析失败当作纯台词。"""
+        """把 LLM 文本解析成 {"line": ..., "intent": {...}}；解析失败当作纯台词。
+
+        兼容三种常见输出形态：
+          1. 纯 JSON            {"line": "...", "intent": {...}}
+          2. 围栏代码块         ```json\\n{...}\\n```      ← 带语言标记，最常见
+          3. 裸代码块           ```\\n{...}\\n```
+        解析不了就当纯台词——绝不让格式问题把整轮对话搞崩。
+        """
         raw = raw.strip()
+
+        # 去掉围栏标记，含 ```json / ```JSON / ``` 三种写法
         if raw.startswith("```"):
-            raw = raw.strip("`").strip()
+            body = raw[3:]
+            # 首行可能是语言标记（json / JSON / json5 等），整行丢掉
+            if "\n" in body:
+                first, rest = body.split("\n", 1)
+                if first.strip().lower() in ("json", "json5", ""):
+                    body = rest
+                # 首行不是语言标记 → 可能本身就是 JSON，保留
+            raw = body.strip()
+            if raw.endswith("```"):
+                raw = raw[:-3].strip()
+
         if raw.startswith("{"):
-            return json.loads(raw)
+            try:
+                return json.loads(raw)
+            except json.JSONDecodeError:
+                # JSON 残缺时不抛，退化成纯台词
+                return {"line": raw}
         return {"line": raw}

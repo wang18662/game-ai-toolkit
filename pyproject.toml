@@ -26,3 +26,20 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+# 覆盖率统计范围。
+#
+# omit 的三项都有「CI 里无法单测」的客观原因，不是为了让数字好看：
+#   demo/*            —— pygame 渲染层，必须有图形上下文才能跑；
+#                        逻辑已被 core/ 与 sim/ 覆盖，这里只剩画图调用。
+#   integrations/llm.py —— 真实 DeepSeek 客户端，需要 API Key + 外网；
+#                        CI 不配密钥，也不该让测试依赖外部服务。
+#
+# integrations/llm_brain.py **不在 omit 里** —— 它的 chat 是注入式的，
+# 用假 chat 就能完整覆盖（见 tests/test_llm_brain.py，现为 100%）。
+[tool.coverage.run]
+omit = [
+    "src/gameai/demo/*",
+    "src/gameai/integrations/llm.py",
+]
+
