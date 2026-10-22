@@ -41,7 +41,11 @@ jobs:
         run: cmake --build build -j"$(nproc)"
       - name: Unit tests
         working-directory: cpp/build
-        run: ctest --output-on-failure
+        # 直接跑测试二进制，不走 ctest。
+        # 原因：ctest 的失败信息只有一行 "Failed tests:"，看不出是哪个用例、断言是什么；
+        # 而 gtest 自己会把失败用例名、期望值、实际值全打出来。
+        # --gtest_color=no 让日志在 Actions 里可读。
+        run: ./cpp_tests --gtest_color=no
       - name: Install Python (for parity check)
         uses: actions/setup-python@v5
         with:
