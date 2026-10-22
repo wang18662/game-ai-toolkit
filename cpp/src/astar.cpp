@@ -1,7 +1,12 @@
 #include "gameai/core/astar.hpp"
 
-#include <queue>
+// astar.cpp 自己的标准库依赖，逐个显式列出（不靠头文件传递）。
+#include <algorithm>       // std::reverse
+#include <cmath>           // std::round
+#include <functional>      // std::greater
+#include <queue>           // std::priority_queue
 #include <unordered_map>
+#include <utility>         // std::pair
 #include <vector>
 
 namespace gameai {

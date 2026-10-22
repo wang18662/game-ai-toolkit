@@ -1,6 +1,7 @@
 #include "gameai/core/fsm.hpp"
 
-#include <stdexcept>
+#include <stdexcept>  // std::invalid_argument
+#include <utility>    // std::move
 
 namespace gameai {
 

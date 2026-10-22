@@ -1,8 +1,11 @@
 #pragma once
 
-#include <functional>
-#include <map>
-#include <memory>
+// 显式包含（同 astar.hpp 的说明：MSVC 传递包含、GCC 不传递）。
+#include <functional>  // std::function
+#include <map>         // std::map
+#include <memory>      // std::unique_ptr
+#include <string>      // std::string
+#include <utility>     // std::move
 #include <vector>
 
 #include "utility.hpp"  // AgentView, WorldView

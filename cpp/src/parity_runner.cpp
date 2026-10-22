@@ -13,6 +13,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <utility>   // std::pair
 #include <vector>
 
 #include <nlohmann/json.hpp>

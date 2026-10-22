@@ -1,6 +1,13 @@
 #pragma once
 
-#include <functional>
+// 显式包含所有用到的标准库头（不要依赖传递包含）。
+// MSVC 的 STL 会间接带进 <utility>/<algorithm>/<cmath>，GCC 的 libstdc++ 不会 ——
+// 少一个在 Windows 上照跑、在 CI（ubuntu-latest）直接编译失败。
+#include <algorithm>  // std::min
+#include <cmath>      // std::abs (浮点)
+#include <cstdlib>    // std::abs (整数)
+#include <functional> // std::function
+#include <utility>    // std::pair
 #include <vector>
 
 #include "vector2.hpp"

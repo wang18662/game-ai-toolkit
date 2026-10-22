@@ -1,7 +1,9 @@
 #pragma once
 
-#include <functional>
+// 显式包含（同 astar.hpp 的说明：MSVC 传递包含、GCC 不传递）。
+#include <functional> // std::function
 #include <string>
+#include <utility>    // std::pair
 #include <vector>
 
 #include "vector2.hpp"

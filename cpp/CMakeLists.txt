@@ -7,51 +7,74 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 include(FetchContent)
 
-# 依赖获取策略：**先用系统包，找不到才下载**。
+# ---------------------------------------------------------------------------
+# 依赖一：nlohmann/json（只有 parity_runner 需要，核心库不需要）
 #
-# 原因：CI（ubuntu-latest）里 apt 已经装了 libgtest-dev，
-# 若仍然无脑 FetchContent，等于在流水线里白下载一遍 googletest，
-# 既慢又容易因网络抖动整 job 失败。
+# 策略：先找系统包；找不到再下载；**下载失败也只是跳过 parity_runner，不让整个构建挂**。
+# 理由：核心库（astar / utility / fsm / bt）是纯标准库，本就不该被一个 JSON 库绑架。
+# ---------------------------------------------------------------------------
 find_package(nlohmann_json 3.11 QUIET)
 if(NOT nlohmann_json_FOUND)
     FetchContent_Declare(
         nlohmann_json
         GIT_REPOSITORY https://github.com/nlohmann/json.git
         GIT_TAG v3.11.3
-        GIT_SHALLOW TRUE)
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE)
+    # 只取头文件，不做 install / 不做测试，编译量小
+    set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
+    set(JSON_Install OFF CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(nlohmann_json)
 endif()
 
-find_package(GTest QUIET)
-if(NOT GTest_FOUND)
-    FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG v1.14.0
-        GIT_SHALLOW TRUE)
-    FetchContent_MakeAvailable(googletest)
-endif()
+# ---------------------------------------------------------------------------
+# 依赖二：GoogleTest
+#
+# 一律走 FetchContent。原因：
+#   Ubuntu 的 libgtest-dev 只装源码/可能缺 gtest_main，find_package 稳不住；
+#   而 googletest 的 shallow clone 只有几 MB，比版本差异带来的麻烦便宜得多。
+# ---------------------------------------------------------------------------
+set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.14.0
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE)
+FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-# Core library (behavior_tree is header-only; no separate .cpp).
+# ---------------------------------------------------------------------------
+# 核心库：纯标准库，零外部依赖（这是「引擎无关」的一部分）
+# ---------------------------------------------------------------------------
 add_library(gameai_core
     src/astar.cpp
     src/utility.cpp
     src/fsm.cpp)
 target_include_directories(gameai_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(gameai_core PUBLIC nlohmann_json::nlohmann_json)
 
-# Parity runner (reads the shared JSON map, emits normalized output).
-add_executable(parity_runner src/parity_runner.cpp)
-target_link_libraries(parity_runner PRIVATE gameai_core)
+# ---------------------------------------------------------------------------
+# 跨语言 parity 运行器：需要 JSON。拿不到就明确跳过，而不是让 CI 红一片。
+# ---------------------------------------------------------------------------
+if(TARGET nlohmann_json::nlohmann_json)
+    add_executable(parity_runner src/parity_runner.cpp)
+    target_link_libraries(parity_runner PRIVATE gameai_core nlohmann_json::nlohmann_json)
+else()
+    message(WARNING "nlohmann_json 不可用 —— 跳过 parity_runner（核心库与单测不受影响）")
+endif()
 
-# Unit tests (GoogleTest).
+# ---------------------------------------------------------------------------
+# 单元测试
+# ---------------------------------------------------------------------------
 add_executable(cpp_tests
     tests/test_astar.cpp
     tests/test_utility.cpp
     tests/test_fsm.cpp
     tests/test_behavior_tree.cpp)
 target_link_libraries(cpp_tests PRIVATE gameai_core GTest::gtest_main)
+
 include(GoogleTest)
 gtest_discover_tests(cpp_tests)
