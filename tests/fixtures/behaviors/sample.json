@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "name": "skirmish",
+  "fsm": {},
+  "bt": {},
+  "utility": {},
+  "astar": {
+    "heuristic": "octile",
+    "cost": "uniform"
+  }
+}

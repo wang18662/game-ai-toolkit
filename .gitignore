@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# 临时调试文件
+_check.py
+_verify_validator.py
+_run_out.txt
+_probe_*.py
+_probe_*.txt
+_test_*.txt
+_t.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 本地仓库备份（损坏的 .git，仅本机留档）
+.git_broken_backup/

@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gameai"
+version = "0.1.0"
+description = "Engine-agnostic game AI toolkit: Python core + thin C++ port"
+requires-python = ">=3.11"
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "pydantic", "matplotlib", "networkx", "pygame"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gameai"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

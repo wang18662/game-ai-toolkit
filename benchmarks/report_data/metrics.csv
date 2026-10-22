@@ -1,0 +1,4 @@
+brain,vs_fsm_win_rate,wins,losses,draws,avg_ms_per_tick,avg_steps
+fsm,0.35,7,13,0,0.264,175.0
+utility,0.65,13,0,7,0.460,1033.2
+bt,0.95,19,1,0,0.404,130.4
